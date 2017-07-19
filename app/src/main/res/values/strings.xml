@@ -6,7 +6,7 @@
     <string name="add_product_photo">Update Photo</string>
     <string name="err_external_storage_permissions">Need permissions to get a product photo</string>
     <string name="action_delete_all_entries">Delete all Data</string>
-    <string name="click_photo_to_update">Click Android to update</string>
+    <string name="click_photo_to_update">Click to update product image.</string>
     <string name="product_name">Name of product</string>
     <string name="product_description">Short Description</string>
     <string name="set_product_sales">Sales products</string>

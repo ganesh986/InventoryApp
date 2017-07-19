@@ -80,7 +80,7 @@ public class DetailActivity extends AppCompatActivity implements
     private String mCurrentPhotoUri = "no images";
     private String mSudoEmail;
     private String mSudoProduct;
-    private int mSudoQuantity = 50;
+    private int mSudoQuantity = 10;
 
     private boolean mProductHasChanged = false;
 

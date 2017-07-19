@@ -29,17 +29,15 @@
             android:id="@+id/update_photo_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
             android:text="@string/click_photo_to_update"
-            android:textAlignment="center"
-            android:textSize="12sp" />
+            style="@style/details_title"/>
 
         <ImageView
             android:id="@+id/image_product_photo"
             android:layout_width="140dp"
             android:layout_height="140dp"
             android:scaleType="centerCrop"
-            android:src="@mipmap/ic_launcher" />
+            android:src="@drawable/ic_insert_placeholder" />
 
 
         <TextView
