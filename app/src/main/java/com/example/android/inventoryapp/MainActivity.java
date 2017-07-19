@@ -2,7 +2,6 @@ package com.example.android.inventoryapp;
 
 import android.app.LoaderManager;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -11,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,8 +17,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.android.inventoryapp.data.InvContract;
-
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor>{
@@ -30,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements
      * Identifier for the inventory data loader
      */
     private static final int INVENTORY_LOADER = 0;
-    //General Product QUERY PROJECTION
+
     public final String[] PRODUCT_COLS = {
             InvContract.InvEntry._ID,
             InvContract.InvEntry.COL_NAME,
@@ -51,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Setup FAB to open EditorActivity
+        // Setup FloatingActionButton for EditorActivity
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,13 +116,10 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // User clicked on a menu option in the app bar overflow menu
+        // Click on menu option
         switch (item.getItemId()) {
-            // Respond to a click on the "Insert dummy data" menu option
-            case R.id.action_insert_dummy_data:
-                insertNewRandomData();
-                return true;
-            // Respond to a click on the "Delete all entries" menu option
+
+            // Click on "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 deleteAllProducts();
                 return true;
@@ -138,29 +131,9 @@ public class MainActivity extends AppCompatActivity implements
 
 
     /**
-     * Helper method to delete all pets in the database.
+     * Method to delete all pets in the database.
      */
     private void deleteAllProducts() {
         int rowsDeleted = getContentResolver().delete(InvContract.InvEntry.CONTENT_URI, null, null);
-        Log.v("CatalogActivity", rowsDeleted + " rows deleted from products database");
-    }
-
-
-    // this is the class that adds random new data for testing
-    private void insertNewRandomData() {
-
-        //randomize the data for the activity that will insert
-        Random r = new Random();
-        String productName = "NewProduct_" + r.nextInt(40000 - 100);
-        int quantity = r.nextInt(40 - 10);
-        float price = r.nextInt(200 - 10);
-
-        ContentValues values = new ContentValues();
-        values.put(InvContract.InvEntry.COL_NAME, productName);
-        values.put(InvContract.InvEntry.COL_QUANTITY, quantity);
-        values.put(InvContract.InvEntry.COL_PRICE, price);
-
-        Uri uri = getContentResolver().insert(InvContract.InvEntry.CONTENT_URI, values);
-
     }
 }

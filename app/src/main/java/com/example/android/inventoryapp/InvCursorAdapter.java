@@ -6,7 +6,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -69,13 +68,11 @@ public class InvCursorAdapter extends CursorAdapter {
 
         final Uri currentProductUri = ContentUris.withAppendedId(InvContract.InvEntry.CONTENT_URI, id);
 
-        Log.d(TAG, "genero Uri: " + currentProductUri + " Product name: " + productName + " id: " + id);
-
         product_name.setText(productName);
         product_quantity.setText(productQuantity);
         product_price.setText(productPrice);
         product_sold.setText(productSold);
-        //We use Glide to import photo images
+        //Import photo images
         Glide.with(context).load(thumbUri)
                 .placeholder(R.mipmap.ic_launcher)
                 .error(ic_insert_placeholder)
@@ -88,13 +85,11 @@ public class InvCursorAdapter extends CursorAdapter {
 
             @Override
             public void onClick(View view) {
-                Log.d(TAG, productName + " quantity= " + quantity);
                 ContentResolver resolver = view.getContext().getContentResolver();
                 ContentValues values = new ContentValues();
                 if (quantity > 0) {
                     int qq = quantity;
                     int yy = products_sold;
-                    Log.d(TAG, "new quantity= " + qq);
                     values.put(InvContract.InvEntry.COL_QUANTITY, --qq);
                     values.put(InvContract.InvEntry.COL_ITEMS_SOLD, ++yy);
                     resolver.update(

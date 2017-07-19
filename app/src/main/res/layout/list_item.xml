@@ -32,7 +32,7 @@
         app:layout_constraintLeft_toRightOf="@+id/product_thumbnail"
         app:layout_constraintRight_toLeftOf="@+id/sale_product"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="NameDemo" />
+        tools:text="Product Name" />
 
 
     <ImageView
@@ -59,7 +59,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat"
         app:layout_constraintRight_toLeftOf="@+id/sale_product"
         app:layout_constraintTop_toTopOf="@+id/inventory_item_current_quantity_text"
-        tools:text="Price $34" />
+        tools:text="Price $100" />
 
 
     <TextView
@@ -76,7 +76,7 @@
         app:layout_constraintLeft_toRightOf="@+id/inventory_item_current_sold_text"
         app:layout_constraintRight_toLeftOf="@+id/inventory_item_price_text"
         app:layout_constraintTop_toBottomOf="@+id/inventory_item_name_text"
-        tools:text="Inventory 3" />
+        tools:text="In Stock" />
 
     <TextView
         android:id="@+id/inventory_item_current_sold_text"
@@ -86,7 +86,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat"
         app:layout_constraintLeft_toLeftOf="@+id/inventory_item_name_text"
         app:layout_constraintTop_toTopOf="@+id/inventory_item_current_quantity_text"
-        tools:text="Sold 3" />
+        tools:text="Sold" />
 
 
     <ImageView

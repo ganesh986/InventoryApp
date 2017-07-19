@@ -18,7 +18,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -45,9 +44,9 @@ public class DetailActivity extends AppCompatActivity implements
     public static final String TAG = DetailActivity.class.getSimpleName();
     public static final int PICK_PHOTO_REQUEST = 20;
     public static final int EXTERNAL_STORAGE_REQUEST_PERMISSION_CODE = 21;
-    //dentifier for the inventory data loader
+    //Identifier for the inventory data loader
     private static final int EXISTING_INVENTORY_LOADER = 0;
-    //General Product QUERY PROJECTION
+    //General Product
     public final String[] PRODUCT_COLS = {
             InvContract.InvEntry._ID,
             InvContract.InvEntry.COL_NAME,
@@ -59,30 +58,30 @@ public class DetailActivity extends AppCompatActivity implements
             InvContract.InvEntry.COL_PICTURE
     };
 
-    private Uri mCurrentProductUri; //current product _ID in edit mode null in insert mode
+    private Uri mCurrentProductUri;
 
-    //Product UI elements
     private ImageView mProductPhoto;
     private EditText mProductName;
     private EditText mProductDescription;
-    private EditText mProductInventory; //col_quantity
+    private EditText mProductInventory;
     private EditText mItemSold;
     private EditText mProductPrice;
     private EditText mSupplier;
-    //Product Action Elements
     private ImageButton actDelete;
     private ImageButton actOrder;
     private ImageButton actUpdate;
     private TextView lUpdateSave;
     private TextView lOrder;
     private TextView lDelete;
-
+    private ImageButton decreaseQuantity;
+    private ImageButton increaseQuantity;
+    private ImageButton decreaseQuantitySales;
+    private ImageButton increaseQuantitySales;
     private String mCurrentPhotoUri = "no images";
     private String mSudoEmail;
     private String mSudoProduct;
     private int mSudoQuantity = 50;
 
-    //Validation Variables
     private boolean mProductHasChanged = false;
 
     /**
@@ -103,7 +102,6 @@ public class DetailActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail);
 
-        //Cast UI
         mProductPhoto = (ImageView) findViewById(R.id.image_product_photo);
         mProductName = (EditText) findViewById(R.id.inventory_item_name_edittext);
         mProductDescription = (EditText) findViewById(R.id.inventory_item_description_edittext);
@@ -112,7 +110,6 @@ public class DetailActivity extends AppCompatActivity implements
         mProductPrice = (EditText) findViewById(R.id.inventory_item_price_edittext);
         mSupplier = (EditText) findViewById(R.id.suplier_edittext);
 
-        //monitor activity so we can protect user
         mProductPhoto.setOnTouchListener(mTouchListener);
         mProductName.setOnTouchListener(mTouchListener);
         mProductDescription.setOnTouchListener(mTouchListener);
@@ -121,15 +118,17 @@ public class DetailActivity extends AppCompatActivity implements
         mProductPrice.setOnTouchListener(mTouchListener);
         mSupplier.setOnTouchListener(mTouchListener);
 
-        //Cast ActionButtons
         actDelete = (ImageButton) findViewById(R.id.delete_product_button);
         actOrder = (ImageButton) findViewById(R.id.order_supplier_button);
         actUpdate = (ImageButton) findViewById(R.id.save_product_button);
         lUpdateSave = (TextView) findViewById(R.id.update_save_label);
         lOrder = (TextView) findViewById(R.id.order_label);
         lDelete = (TextView) findViewById(R.id.delete_label);
+        decreaseQuantity = (ImageButton) findViewById(R.id.decrease_quantity);
+        increaseQuantity = (ImageButton) findViewById(R.id.increase_quantity);
+        decreaseQuantitySales = (ImageButton) findViewById(R.id.decrease_quantity_sales);
+        increaseQuantitySales = (ImageButton) findViewById(R.id.increase_quantity_sales);
 
-        //Make the photo click listener to update itself
         mProductPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -163,17 +162,16 @@ public class DetailActivity extends AppCompatActivity implements
         mCurrentProductUri = intent.getData();
 
         if (mCurrentProductUri == null) {
-            //User click new product
+            //New product
             setTitle(getString(R.string.add_product_title));
             lUpdateSave.setText(R.string.save_product_label);
-            //We can't order product for new ones
             actOrder.setVisibility(View.GONE);
             lOrder.setVisibility(View.GONE);
             actDelete.setVisibility(View.GONE);
             lDelete.setVisibility(View.GONE);
 
         } else {
-            //User want to update a specific product
+            //Update product
             setTitle(getString(R.string.edit_product_title));
             lUpdateSave.setText(R.string.update_product_label);
 
@@ -181,9 +179,40 @@ public class DetailActivity extends AppCompatActivity implements
             lOrder.setVisibility(View.VISIBLE);
             actDelete.setVisibility(View.VISIBLE);
             lDelete.setVisibility(View.VISIBLE);
-            //Read database for selected Product
+
             getLoaderManager().initLoader(EXISTING_INVENTORY_LOADER, null, this);
         }
+        decreaseQuantity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                subtractOneToQuantity();
+                mProductHasChanged = true;
+            }
+        });
+
+        increaseQuantity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sumOneToQuantity();
+                mProductHasChanged = true;
+            }
+        });
+
+        decreaseQuantitySales.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                subtractOneToQuantitySales();
+                mProductHasChanged = true;
+            }
+        });
+
+        increaseQuantitySales.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sumOneToQuantitySales();
+                mProductHasChanged = true;
+            }
+        });
     }
 
     @Override
@@ -197,28 +226,25 @@ public class DetailActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.settings:
-                return true;
 
             case android.R.id.home:
-                //if user didnt make changes
+                //No changes
                 if (!mProductHasChanged) {
                     NavUtils.navigateUpFromSameTask(DetailActivity.this);
                     return true;
                 }
 
-                //User has made som change
-
+                //There are some changes
                 DialogInterface.OnClickListener discardButtonClickListener =
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                // User clicked "Discard" button, navigate to parent activity.
+                                // User clicked "Discard" button
                                 NavUtils.navigateUpFromSameTask(DetailActivity.this);
                             }
                         };
 
-                // Show a dialog that notifies the user they have unsaved changes
+                // Notify user that there are unsaved changes
                 showUnsavedChangesDialog(discardButtonClickListener);
                 return true;
 
@@ -231,16 +257,13 @@ public class DetailActivity extends AppCompatActivity implements
 
     public void onPhotoProductUpdate(View view) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            //We are on M or above so we need to ask for runtime permissions
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 invokeGetPhoto();
             } else {
-                // we are here if we do not all ready have permissions
                 String[] permisionRequest = {Manifest.permission.READ_EXTERNAL_STORAGE};
                 requestPermissions(permisionRequest, EXTERNAL_STORAGE_REQUEST_PERMISSION_CODE);
             }
         } else {
-            //We are on an older devices so we dont have to ask for runtime permissions
             invokeGetPhoto();
         }
 
@@ -250,49 +273,91 @@ public class DetailActivity extends AppCompatActivity implements
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == EXTERNAL_STORAGE_REQUEST_PERMISSION_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            //We got a GO from the user
             invokeGetPhoto();
         } else {
             Toast.makeText(this, R.string.err_external_storage_permissions, Toast.LENGTH_LONG).show();
         }
     }
 
-    private void invokeGetPhoto() {
-        // invoke the image gallery using an implict intent.
-        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+    private void subtractOneToQuantity() {
+        String previousValueString = mProductInventory.getText().toString();
+        int previousValue;
+        if (previousValueString.isEmpty()) {
+            return;
+        } else if (previousValueString.equals("0")) {
+            return;
+        } else {
+            previousValue = Integer.parseInt(previousValueString);
+            mProductInventory.setText(String.valueOf(previousValue - 1));
+        }
+    }
 
-        // where do we want to find the data?
+    private void sumOneToQuantity() {
+        String previousValueString = mProductInventory.getText().toString();
+        int previousValue;
+        if (previousValueString.isEmpty()) {
+            previousValue = 0;
+        } else {
+            previousValue = Integer.parseInt(previousValueString);
+        }
+        mProductInventory.setText(String.valueOf(previousValue + 1));
+    }
+
+    private void subtractOneToQuantitySales() {
+        String previousValueString = mItemSold.getText().toString();
+        int previousValue;
+        if (previousValueString.isEmpty()) {
+            return;
+        } else if (previousValueString.equals("0")) {
+            return;
+        } else {
+            previousValue = Integer.parseInt(previousValueString);
+            mItemSold.setText(String.valueOf(previousValue - 1));
+        }
+    }
+
+    private void sumOneToQuantitySales() {
+        String previousValueString = mItemSold.getText().toString();
+        int previousValue;
+        if (previousValueString.isEmpty()) {
+            previousValue = 0;
+        } else {
+            previousValue = Integer.parseInt(previousValueString);
+        }
+        mItemSold.setText(String.valueOf(previousValue + 1));
+    }
+
+    private void invokeGetPhoto() {
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
         File pictureDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         String pictureDirectoryPath = pictureDirectory.getPath();
-        // finally, get a URI representation
+
         Uri data = Uri.parse(pictureDirectoryPath);
 
-        // set the data and type.  Get all image types.
         photoPickerIntent.setDataAndType(data, "image/*");
 
-        // we will invoke this activity, and get something back from it.
         startActivityForResult(photoPickerIntent, PICK_PHOTO_REQUEST);
     }
 
     @Override
     public void onBackPressed() {
-        //Go back if we have no changes
+        //No changes
         if (!mProductHasChanged) {
             super.onBackPressed();
             return;
         }
 
-        //otherwise Protect user from loosing info
+        //changes
         DialogInterface.OnClickListener discardButtonClickListener =
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        // User clicked "Discard" button, close the current activity.
+                        // User clicked "Discard" button
                         finish();
                     }
                 };
 
-        // Show dialog that there are unsaved changes
+        // Notify user that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
     }
 
@@ -300,12 +365,11 @@ public class DetailActivity extends AppCompatActivity implements
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_PHOTO_REQUEST && resultCode == RESULT_OK) {
             if (data != null) {
-                //If we are here, everything processed successfully and we have an Uri data
+                //Uri data is complete
                 Uri mProductPhotoUri = data.getData();
                 mCurrentPhotoUri = mProductPhotoUri.toString();
-                Log.d(TAG, "Selected images " + mProductPhotoUri);
 
-                //We use Glide to import photo images
+                //Import photo
                 Glide.with(this).load(mProductPhotoUri)
                         .placeholder(ic_insert_placeholder)
                         .crossFade()
@@ -330,13 +394,10 @@ public class DetailActivity extends AppCompatActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        // Bail early if the cursor is null or there is less than 1 row in the cursor
         if (cursor == null || cursor.getCount() < 1) {
             return;
         }
 
-        // Proceed with moving to the first row of the cursor and reading data from it
-        // (This should be the only row in the cursor)
         if (cursor.moveToFirst()) {
 
             int i_ID = 0;
@@ -361,14 +422,14 @@ public class DetailActivity extends AppCompatActivity implements
             mSudoEmail = "orders@" + supplier + ".com";
             mSudoProduct = name;
 
-            //We updates fields to values on DB
+            //Updates values on DB
             mProductName.setText(name);
             mProductPrice.setText(String.valueOf(price));
             mProductInventory.setText(String.valueOf(quantity));
             mProductDescription.setText(description);
             mItemSold.setText(String.valueOf(itemSold));
             mSupplier.setText(supplier);
-            //Update photo using Glide
+            //Update photo
             Glide.with(this).load(mCurrentPhotoUri)
                     .placeholder(R.mipmap.ic_launcher)
                     .error(ic_insert_placeholder)
@@ -392,17 +453,17 @@ public class DetailActivity extends AppCompatActivity implements
         String priceString = mProductPrice.getText().toString().trim();
         String supplierString = mSupplier.getText().toString().trim();
 
-        //Check if is new or if an update
+        //Check if new or updating existing product
         if (TextUtils.isEmpty(nameString) || TextUtils.isEmpty(descriptionString)
                 || TextUtils.isEmpty(inventoryString) || TextUtils.isEmpty(salesString)
                 || TextUtils.isEmpty(priceString) || TextUtils.isEmpty(supplierString)) {
 
             Toast.makeText(this, R.string.err_missing_textfields, Toast.LENGTH_SHORT).show();
-            // No change has been made so we can return
+            // No change
             return;
         }
 
-        //We set values for insert update
+        //update values
         ContentValues values = new ContentValues();
 
         values.put(InvContract.InvEntry.COL_NAME, nameString);
@@ -425,7 +486,7 @@ public class DetailActivity extends AppCompatActivity implements
                 startActivity(intent);
             }
         } else {
-            // We are Updating
+            // Updating
             int rowUpdated = getContentResolver().update(mCurrentProductUri, values, null, null);
 
             if (rowUpdated == 0) {
@@ -464,8 +525,7 @@ public class DetailActivity extends AppCompatActivity implements
      */
     private void showUnsavedChangesDialog(
             DialogInterface.OnClickListener discardButtonClickListener) {
-        // Create an AlertDialog.Builder and set the message, and click listeners
-        // for the postivie and negative buttons on the dialog.
+        // Create an AlertDialog and set the message
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.unsaved_changes_dialog_msg);
         builder.setPositiveButton(R.string.discard, discardButtonClickListener);
@@ -489,8 +549,7 @@ public class DetailActivity extends AppCompatActivity implements
      * Prompt the user to confirm that they want to delete this pet.
      */
     private void showDeleteConfirmationDialog() {
-        // Create an AlertDialog.Builder and set the message, and click listeners
-        // for the postivie and negative buttons on the dialog.
+        // Create an AlertDialog and set the message
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(R.string.delete_dialog_msg);
         builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
@@ -518,7 +577,7 @@ public class DetailActivity extends AppCompatActivity implements
      * Perform the deletion of the pet in the database.
      */
     private void deletePet() {
-        // Only perform the delete if this is an existing pet.
+        // Perform the delete only if this is an existing pet.
         if (mCurrentProductUri != null) {
             // Call the ContentResolver to delete the pet at the given content URI.
             // Pass in null for the selection and selection args because the mCurrentPetUri
@@ -549,9 +608,9 @@ public class DetailActivity extends AppCompatActivity implements
         emailIntent.setData(Uri.parse("mailto:"));
         emailIntent.setType("text/plain");
         emailIntent.putExtra(Intent.EXTRA_EMAIL, TO);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Order " + mSudoProduct);
-        emailIntent.putExtra(Intent.EXTRA_TEXT, "Please ship " + mSudoProduct +
-                " in quantities " + mSudoQuantity);
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Order for " + mSudoProduct + " product");
+        emailIntent.putExtra(Intent.EXTRA_TEXT, "We need other " + mSudoProduct +
+                ". Please send " + mSudoQuantity + " new item.");
 
         try {
             startActivity(Intent.createChooser(emailIntent, "Send mail..."));

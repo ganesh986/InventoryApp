@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.example.android.inventoryapp.R;
 
@@ -47,7 +46,6 @@ public class InvProvider  extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        Log.i(TAG, "We prepared the a DB helper");
         mDbHelper = new InvDbHelper(getContext());
         return true;
     }
@@ -90,7 +88,7 @@ public class InvProvider  extends ContentProvider {
 
                 break;
             default:
-                throw new IllegalArgumentException("Cannot query unknown URI " + uri);
+                throw new IllegalArgumentException("Unknown URI " + uri);
         }
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
 
@@ -131,7 +129,7 @@ public class InvProvider  extends ContentProvider {
         // Check that the name is not null
         String name = values.getAsString(InvContract.InvEntry.COL_NAME);
         if (name == null) {
-            throw new IllegalArgumentException("Product requires a name");
+            throw new IllegalArgumentException(String.valueOf(R.string.need_name));
         }
 
         // Check that the gender is valid
@@ -140,35 +138,32 @@ public class InvProvider  extends ContentProvider {
         // If the weight is provided, check that it's greater than or equal to 0 kg
         Float price = values.getAsFloat(InvContract.InvEntry.COL_PRICE);
         if (price != null && price < 0) {
-            throw new IllegalArgumentException("product requires valid price");
+            throw new IllegalArgumentException(String.valueOf(R.string.need_price));
         }
 
 
-        // Get writeable database
+        // Get database
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
 
-        // Insert the new product with the given values
+        // Insert the new product with inserted values
         long id = database.insert(InvContract.InvEntry.TABLE_NAME, null, values);
-        // If the ID is -1, then the insertion failed. Log an error and return null.
+        // If the ID is -1, failed insertion.
         if (id == -1) {
-            Log.e(TAG, "Failed to insert row for " + uri);
             return null;
         }
 
-        // Notify all listeners that the data has changed for the inventory content URI
+        // Notify all listeners changed for the inventory content URI
         getContext().getContentResolver().notifyChange(uri, null);
-        Log.i(TAG, "We inserted a record");
 
-
-        // Return the new URI with the ID (of the newly inserted row) appended at the end
+        // Return the new URI with the ID appended at the end
         return ContentUris.withAppendedId(uri, id);
     }
 
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Get writable database
+        // Get database
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
         int match = sUriMatcher.match(uri);
         int rowsDeleted;
@@ -182,7 +177,7 @@ public class InvProvider  extends ContentProvider {
                 rowsDeleted = database.delete(InvContract.InvEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
-                throw new IllegalArgumentException("Delete is not supported for " + uri);
+                throw new IllegalArgumentException(R.string.delete_not_possible + uri.toString());
         }
         if (rowsDeleted != 0) {
             getContext().getContentResolver().notifyChange(uri, null);
@@ -199,10 +194,8 @@ public class InvProvider  extends ContentProvider {
         int rowsUpdated;
 
         if (contentValues == null) {
-            throw new IllegalArgumentException("Cannot update empty values");
+            throw new IllegalArgumentException(String.valueOf(R.string.update_not_possible));
         }
-
-        //todo add Validations of fields that are updated
 
         switch (match) {
             case INVENTORY:
@@ -218,7 +211,7 @@ public class InvProvider  extends ContentProvider {
                         new String[]{String.valueOf(ContentUris.parseId(uri))});
                 break;
             default:
-                throw new UnsupportedOperationException("Unknown uri: " + uri);
+                throw new UnsupportedOperationException(R.string.Unknown_URI + uri.toString());
         }
 
         return rowsUpdated;
