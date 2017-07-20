@@ -86,7 +86,7 @@ public class DetailActivity extends AppCompatActivity implements
 
     /**
      * OnTouchListener that listens for any user touches on a View, implying that they are modifying
-     * the view, and we change the mPetHasChanged boolean to true.
+     * the view.
      */
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
@@ -456,7 +456,7 @@ public class DetailActivity extends AppCompatActivity implements
         //Check if new or updating existing product
         if (TextUtils.isEmpty(nameString) || TextUtils.isEmpty(descriptionString)
                 || TextUtils.isEmpty(inventoryString) || TextUtils.isEmpty(salesString)
-                || TextUtils.isEmpty(priceString) || TextUtils.isEmpty(supplierString)) {
+                || TextUtils.isEmpty(priceString) || TextUtils.isEmpty(supplierString) || (mCurrentPhotoUri == "no images")) {
 
             Toast.makeText(this, R.string.err_missing_textfields, Toast.LENGTH_SHORT).show();
             // No change
@@ -532,7 +532,6 @@ public class DetailActivity extends AppCompatActivity implements
         builder.setNegativeButton(R.string.keep_editing, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked the "Keep editing" button, so dismiss the dialog
-                // and continue editing the pet.
                 if (dialog != null) {
                     dialog.dismiss();
                 }
@@ -546,7 +545,7 @@ public class DetailActivity extends AppCompatActivity implements
 
 
     /**
-     * Prompt the user to confirm that they want to delete this pet.
+     * Prompt the user to confirm that they want to delete this product.
      */
     private void showDeleteConfirmationDialog() {
         // Create an AlertDialog and set the message
@@ -554,14 +553,13 @@ public class DetailActivity extends AppCompatActivity implements
         builder.setMessage(R.string.delete_dialog_msg);
         builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                // User clicked the "Delete" button, so delete the pet.
-                deletePet();
+                // User clicked the "Delete" button, so delete the product.
+                deleteProducts();
             }
         });
         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked the "Cancel" button, so dismiss the dialog
-                // and continue editing the pet.
                 if (dialog != null) {
                     dialog.dismiss();
                 }
@@ -574,24 +572,23 @@ public class DetailActivity extends AppCompatActivity implements
     }
 
     /**
-     * Perform the deletion of the pet in the database.
+     * Perform the deletion of the product in the database.
      */
-    private void deletePet() {
-        // Perform the delete only if this is an existing pet.
+    private void deleteProducts() {
+        // Perform the delete only if this is an existing product.
         if (mCurrentProductUri != null) {
-            // Call the ContentResolver to delete the pet at the given content URI.
-            // Pass in null for the selection and selection args because the mCurrentPetUri
-            // content URI already identifies the pet that we want.
+            // Call the ContentResolver to delete the product at the given content URI.
+
             int rowsDeleted = getContentResolver().delete(mCurrentProductUri, null, null);
 
             // Show a toast message depending on whether or not the delete was successful.
             if (rowsDeleted == 0) {
                 // If no rows were deleted, then there was an error with the delete.
-                Toast.makeText(this, getString(R.string.editor_delete_pet_failed),
+                Toast.makeText(this, getString(R.string.editor_delete_product_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
                 // Otherwise, the delete was successful and we can display a toast.
-                Toast.makeText(this, getString(R.string.editor_delete_pet_successful),
+                Toast.makeText(this, getString(R.string.editor_delete_product_successful),
                         Toast.LENGTH_SHORT).show();
             }
         }

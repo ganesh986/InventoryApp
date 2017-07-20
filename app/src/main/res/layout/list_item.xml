@@ -19,16 +19,17 @@
 
     <TextView
         android:id="@+id/inventory_item_name_text"
-        android:layout_width="240dp"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:layout_marginLeft="32dp"
+        android:layout_marginLeft="40dp"
         android:layout_marginRight="16dp"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:gravity="start"
         android:textAlignment="viewStart"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        app:layout_constraintHorizontal_bias="0.58"
         app:layout_constraintLeft_toRightOf="@+id/product_thumbnail"
         app:layout_constraintRight_toLeftOf="@+id/sale_product"
         app:layout_constraintTop_toTopOf="parent"
@@ -89,13 +90,14 @@
         tools:text="Sold" />
 
 
-    <ImageView
+    <ImageButton
         android:id="@+id/sale_product"
         android:layout_width="wrap_content"
         android:layout_height="64dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginTop="16dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_sale"
         android:tint="@android:color/holo_green_dark"
         app:layout_constraintRight_toRightOf="parent"

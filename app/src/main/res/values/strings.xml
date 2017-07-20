@@ -22,8 +22,8 @@
     <string name="unsaved_changes_dialog_msg">You have unsaved information are you sure you want to go back?</string>
     <string name="discard">Discard and leave</string>
     <string name="keep_editing">Continue</string>
-    <string name="editor_delete_pet_failed">Problem deleting product</string>
-    <string name="editor_delete_pet_successful">Deleted successfully</string>
+    <string name="editor_delete_product_failed">Problem deleting product</string>
+    <string name="editor_delete_product_successful">Deleted successfully</string>
     <string name="delete_dialog_msg">Are you sure you want to delete the product</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
